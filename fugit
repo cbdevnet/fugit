@@ -13,7 +13,7 @@ contains(){
 	return 1
 }
 
-git-receive-pack(){
+push(){
 	# Unquote the argument. This currently is a security risk. Fix it.
 	REPO=$(eval echo $1)
 	eval $(grep "REPO $REPO$" $CONFFILE -A 3 | tail -n +2)
@@ -26,7 +26,7 @@ git-receive-pack(){
 	fi
 
 	if contains "$PUSH" "$FUGIT_USER"; then
-		/usr/bin/git-receive-pack $REAL
+		git-receive-pack $REAL
 		printf "%s %s: Push accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
 	else
 		printf "%s %s: Push rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
@@ -34,7 +34,7 @@ git-receive-pack(){
 	fi
 }
 
-git-upload-pack(){
+pull(){
 	# Unquote the argument. This currently is a security risk. Fix it.
 	REPO=$(eval echo $1)
 	eval $(grep "REPO $REPO$" $CONFFILE -A 3 | tail -n +2)
@@ -48,7 +48,7 @@ git-upload-pack(){
 
 
 	if contains "$PULL" "$FUGIT_USER"; then
-		/usr/bin/git-upload-pack $REAL
+		git-upload-pack $REAL
 		printf "%s %s: Pull accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
 	else
 		printf "%s %s: Pull rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
@@ -62,13 +62,15 @@ if [ -z "$FUGIT_USER" ]; then
 fi
 
 printf "%s %s: Command is %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
-if [[ "$SSH_ORIGINAL_COMMAND" == git-receive-pack* ]]; then
-	printf "%s %s: push detected, executing\n" "`date`" "$FUGIT_USER" >> $LOGFILE
-	$SSH_ORIGINAL_COMMAND
+if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
+	REPO=${SSH_ORIGINAL_COMMAND:17}
+	printf "%s %s: push to repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
+	push "$REPO"
 else
-	if [[ "$SSH_ORIGINAL_COMMAND" == git-upload-pack* ]]; then
-		printf "%s %s: pull detected, executing\n" "`date`" "$FUGIT_USER" >> $LOGFILE
-		$SSH_ORIGINAL_COMMAND
+	if [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
+		REPO=${SSH_ORIGINAL_COMMAND:16}
+		printf "%s %s: pull from repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
+		pull "$REPO"
 	else
 		printf "%s %s: Unknown command %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
 		exit 1
