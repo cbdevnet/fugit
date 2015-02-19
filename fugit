@@ -5,8 +5,8 @@ LOGFILE="fugit.log"
 CONFFILE="fugit.conf"
 
 contains(){
-	for entry in $1; do
-		if [ "$entry" == $2 ]; then
+	for entry in "$1"; do
+		if [ "$entry" == "$2" ]; then
 			return 0
 		fi
 	done
@@ -14,6 +14,7 @@ contains(){
 }
 
 push(){
+	#read repo config
 	eval $(grep "REPO $1$" $CONFFILE -A 3 | tail -n +2)
 
 	printf "%s %s: Trying to push to %s (Path %s)\n" "`date`" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
@@ -23,6 +24,7 @@ push(){
 		return 1
 	fi
 
+	#do access control
 	if contains "$PUSH" "$FUGIT_USER"; then
 		git-receive-pack "$REAL"
 		printf "%s %s: Push accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
@@ -33,6 +35,7 @@ push(){
 }
 
 pull(){
+	#read repo config
 	eval $(grep "REPO $1$" $CONFFILE -A 3 | tail -n +2)
 
 	printf "%s %s: Trying to read from %s (Path %s)\n" "`date`" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
@@ -42,7 +45,7 @@ pull(){
 		return 1
 	fi
 
-
+	#do access control
 	if contains "$PULL" "$FUGIT_USER"; then
 		git-upload-pack "$REAL"
 		printf "%s %s: Pull accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
