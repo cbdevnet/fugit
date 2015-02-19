@@ -19,7 +19,7 @@ command executing "~/fugit <user identifier>" (see the demo file in the repo
 for an example).
 
 You might also want to add some or all of 
-	no-port-forwarding,no-X11-forwarding,no-agent-forwarding
+	no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding
 to the keys options.
 
 Edit fugit.conf to contain exactly 4 lines of text per repository to be served.
