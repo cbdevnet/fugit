@@ -55,6 +55,7 @@ pull(){
 FUGIT_USER=$1
 if [ -z "$FUGIT_USER" ]; then
 	printf "%s UNKNOWN: No user name supplied\n" "`date`" >> $LOGFILE
+	exit 1
 fi
 
 printf "%s %s: Command is %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
@@ -63,7 +64,7 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 	REPO=${SSH_ORIGINAL_COMMAND:17}
 
 	#remove quotes
-	${REPO:1:${#REPO}-2}
+	REPO=${REPO:1:${#REPO}-2}
 
 	printf "%s %s: push to repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	push "$REPO"
@@ -73,7 +74,7 @@ else
 		REPO=${SSH_ORIGINAL_COMMAND:16}
 
 		#remove quotes
-		${REPO:1:${#REPO}-2}
+		REPO=${REPO:1:${#REPO}-2}
 
 		printf "%s %s: pull from repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
 		pull "$REPO"
