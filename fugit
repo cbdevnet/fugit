@@ -13,6 +13,7 @@ contains(){
 }
 
 git-receive-pack(){
+	# Unquote the argument. This currently is a security risk. Fix it.
 	REPO=$(eval echo $1)
 	eval $(grep "REPO $REPO$" fugit.conf -A 3 | tail -n +2)
 
@@ -33,6 +34,7 @@ git-receive-pack(){
 }
 
 git-upload-pack(){
+	# Unquote the argument. This currently is a security risk. Fix it.
 	REPO=$(eval echo $1)
 	eval $(grep "REPO $REPO$" fugit.conf -A 3 | tail -n +2)
 
