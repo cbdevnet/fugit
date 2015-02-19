@@ -1,0 +1,31 @@
+#!/bin/bash
+#set -x
+
+git-receive-pack(){
+	REPO=$(eval echo $1)
+	printf "%s %s: Trying to push to %s (Unquoted: %s)\n" "`date`" "$FUGIT_USER" "$1" "$REPO" >> fugit.log
+	/usr/bin/git-receive-pack $REPO
+#	printf $1 | xargs /usr/bin/git-receive-pack
+	printf "%s %s: Done in subprocedure\n" "`date`" "$FUGIT_USER" >> fugit.log
+}
+
+git-upload-pack(){
+	REPO=$(eval echo $1)
+	printf "%s %s: Trying to read from %s\n" "`date`" "$FUGIT_USER" "$1" >> fugit.log
+#	printf $1 | xargs /usr/bin/git-upload-pack
+	/usr/bin/git-upload-pack $REPO
+	printf "%s %s: Done in subprocedure\n" "`date`" "$FUGIT_USER" >> fugit.log
+}
+
+printf "%s %s: Command is %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> fugit.log
+if [[ "$SSH_ORIGINAL_COMMAND" == git-receive-pack* ]]; then
+	printf "%s %s: push detected, executing\n" "`date`" "$FUGIT_USER" >> fugit.log
+	$SSH_ORIGINAL_COMMAND
+fi
+
+if [[ "$SSH_ORIGINAL_COMMAND" == git-upload-pack* ]]; then
+	printf "%s %s: pull detected, executing\n" "`date`" "$FUGIT_USER" >> fugit.log
+	$SSH_ORIGINAL_COMMAND
+else
+	printf "%s %s: Unknown command %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> fugit.log
+fi
