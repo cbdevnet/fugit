@@ -29,6 +29,14 @@ Those should be, exactly in this order
 	PUSH="<list of users>"		//Users allowed to push to the repo
 	PULL="<list of users>"		//Users allowed to pull from the repo
 
+Debugging
+---------
+First, check the log. It should contain all commands processed by fugit.
+In order to see very verbose debug information at run time, uncomment the
+	set -x
+line in the beginning of the file. You will now be spammed with execution
+data upon interacting with repos controlled by fugit.
+
 How it works
 ------------
 gits submodules exchang data via stdin/stdout over ssh. fugit inserts itself
