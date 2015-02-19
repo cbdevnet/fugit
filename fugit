@@ -5,7 +5,7 @@ LOGFILE="fugit.log"
 CONFFILE="fugit.conf"
 
 contains(){
-	for entry in "$1"; do
+	for entry in $1; do
 		if [ "$entry" == "$2" ]; then
 			return 0
 		fi
