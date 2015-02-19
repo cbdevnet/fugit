@@ -66,8 +66,9 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 	#extract argument
 	REPO=${SSH_ORIGINAL_COMMAND:17}
 
-	#remove quotes
-	REPO=${REPO:1:${#REPO}-2}
+	#remove quotes (without opening injection possibilities)
+	REPO=$(echo $REPO | xargs echo)
+	#REPO=${REPO:1:${#REPO}-2}
 
 	printf "%s %s: push to repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	push "$REPO"
@@ -76,8 +77,9 @@ else
 		#extract argument
 		REPO=${SSH_ORIGINAL_COMMAND:16}
 
-		#remove quotes
-		REPO=${REPO:1:${#REPO}-2}
+		#remove quotes (without opening injection possibilities)
+		REPO=$(echo $REPO | xargs echo)
+		#REPO=${REPO:1:${#REPO}-2}
 
 		printf "%s %s: pull from repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
 		pull "$REPO"
