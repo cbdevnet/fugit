@@ -1,31 +1,68 @@
 #!/bin/bash
 #set -x
 
+LOGFILE="fugit.log"
+
+contains(){
+	for entry in $1; do
+		if [ "$entry" == $2 ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
 git-receive-pack(){
 	REPO=$(eval echo $1)
-	printf "%s %s: Trying to push to %s (Unquoted: %s)\n" "`date`" "$FUGIT_USER" "$1" "$REPO" >> fugit.log
-	/usr/bin/git-receive-pack $REPO
-#	printf $1 | xargs /usr/bin/git-receive-pack
-	printf "%s %s: Done in subprocedure\n" "`date`" "$FUGIT_USER" >> fugit.log
+	eval $(grep "REPO $REPO$" fugit.conf -A 3 | tail -n +2)
+
+	printf "%s %s: Trying to push to %s (Path %s)\n" "`date`" "$FUGIT_USER" "$1" "$REPO" "$REAL" >> $LOGFILE
+	if [ -z "$REAL" ]; then
+		printf "%s %s: Unknown repo, abort\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+		printf "FAIL"
+		return 1
+	fi
+
+	if contains "$PUSH" "$FUGIT_USER"; then
+		/usr/bin/git-receive-pack $REAL
+		printf "%s %s: Push accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+	else
+		printf "%s %s: Push rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
+		printf "FAIL"
+	fi
 }
 
 git-upload-pack(){
 	REPO=$(eval echo $1)
-	printf "%s %s: Trying to read from %s\n" "`date`" "$FUGIT_USER" "$1" >> fugit.log
-#	printf $1 | xargs /usr/bin/git-upload-pack
-	/usr/bin/git-upload-pack $REPO
-	printf "%s %s: Done in subprocedure\n" "`date`" "$FUGIT_USER" >> fugit.log
+	eval $(grep "REPO $REPO$" fugit.conf -A 3 | tail -n +2)
+
+	printf "%s %s: Trying to read from %s (Path %s)\n" "`date`" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
+	if [ -z "$REAL" ]; then
+		printf "%s %s: Unknown repo, abort\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+		printf "FAIL"
+		return 1
+	fi
+
+
+	if contains "$PULL" "$FUGIT_USER"; then
+		/usr/bin/git-upload-pack $REAL
+		printf "%s %s: Pull accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+	else
+		printf "%s %s: Pull rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
+		printf "FAIL"
+	fi
 }
 
-printf "%s %s: Command is %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> fugit.log
+printf "%s %s: Command is %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
 if [[ "$SSH_ORIGINAL_COMMAND" == git-receive-pack* ]]; then
-	printf "%s %s: push detected, executing\n" "`date`" "$FUGIT_USER" >> fugit.log
-	$SSH_ORIGINAL_COMMAND
-fi
-
-if [[ "$SSH_ORIGINAL_COMMAND" == git-upload-pack* ]]; then
-	printf "%s %s: pull detected, executing\n" "`date`" "$FUGIT_USER" >> fugit.log
+	printf "%s %s: push detected, executing\n" "`date`" "$FUGIT_USER" >> $LOGFILE
 	$SSH_ORIGINAL_COMMAND
 else
-	printf "%s %s: Unknown command %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> fugit.log
+	if [[ "$SSH_ORIGINAL_COMMAND" == git-upload-pack* ]]; then
+		printf "%s %s: pull detected, executing\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+		$SSH_ORIGINAL_COMMAND
+	else
+		printf "%s %s: Unknown command %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
+		exit 1
+	fi
 fi
