@@ -9,18 +9,14 @@ it break, bash.
 
 Setup
 -----
-Add
-	PermitUserEnvironment yes
-to your /etc/ssh/sshd_config.
-
 Set up a system user.
 Clone this repo into the home of the new user.
 Make sure ~/fugit is executable.
 If you like, change the log destination from the default (fugit.log) on line 4
 
 Add the keys used to identify users to .ssh/authorized_keys and add a forced 
-command executing ~/fugit as well as an environment directive setting up the 
-internal user name (see the demo file in the repo for an example).
+command executing "~/fugit <user identifier>" (see the demo file in the repo 
+for an example).
 
 You might also want to add some or all of 
 	no-port-forwarding,no-X11-forwarding,no-agent-forwarding
@@ -35,8 +31,8 @@ Those should be, exactly in this order
 
 How it works
 ------------
-git exchanges it's data via stdin/stdout over ssh. fugit inserts itself
-between that channel, distinguished between push and pull operations and
+gits submodules exchang data via stdin/stdout over ssh. fugit inserts itself
+into that channel, distinguishes between push and pull operations and
 either allows the channel to continue or simply closes it. It's not exactly
 rocket science, but it works.
 

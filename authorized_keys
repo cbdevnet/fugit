@@ -1,1 +1,1 @@
-environment="FUGIT_USER=cbdev",command="./fugit" ssh-rsa mysshkey 
+command="./fugit cbdev" ssh-rsa mysshkey 
