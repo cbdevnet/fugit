@@ -64,7 +64,7 @@ fi
 printf "%s %s: Command is %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
 if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 	#extract argument
-	REPO=${SSH_ORIGINAL_COMMAND:17}
+	REPO=${SSH_ORIGINAL_COMMAND#git-receive-pack }
 
 	#remove quotes (without opening injection possibilities)
 	REPO=$(echo $REPO | xargs echo)
@@ -75,7 +75,7 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 
 elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
 	#extract argument
-	REPO=${SSH_ORIGINAL_COMMAND:16}
+	REPO=${SSH_ORIGINAL_COMMAND#git-upload-pack }
 
 	#remove quotes (without opening injection possibilities)
 	REPO=$(echo $REPO | xargs echo)
