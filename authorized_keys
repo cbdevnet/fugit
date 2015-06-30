@@ -1,1 +1,1 @@
-command="./fugit cbdev" ssh-rsa mysshkey 
+command="./fugit cbdev" ssh-rsa mysshkey

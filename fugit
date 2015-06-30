@@ -29,7 +29,7 @@ push(){
 		git-receive-pack "$REAL"
 		printf "%s %s: Push accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
 	else
-		printf "%s %s: Push rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
+		printf "%s %s: Push rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE
 		printf "FAIL"
 	fi
 }
@@ -50,7 +50,7 @@ pull(){
 		git-upload-pack "$REAL"
 		printf "%s %s: Pull accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
 	else
-		printf "%s %s: Pull rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
+		printf "%s %s: Pull rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE
 		printf "FAIL"
 	fi
 }
