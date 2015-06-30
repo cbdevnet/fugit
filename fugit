@@ -5,11 +5,15 @@ LOGFILE="fugit.log"
 CONFFILE="fugit.conf"
 
 contains(){
+	# temporarily disable pathname expansion to prevent expansion of $1
+	set -f
 	for entry in $1; do
 		if [ "$entry" == "$2" ]; then
+			set +f
 			return 0
 		fi
 	done
+	set +f
 	return 1
 }
 
