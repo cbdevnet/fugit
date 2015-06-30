@@ -72,19 +72,19 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 
 	printf "%s %s: push to repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	push "$REPO"
+
+elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
+	#extract argument
+	REPO=${SSH_ORIGINAL_COMMAND:16}
+
+	#remove quotes (without opening injection possibilities)
+	REPO=$(echo $REPO | xargs echo)
+	#REPO=${REPO:1:${#REPO}-2}
+
+	printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
+	pull "$REPO"
+
 else
-	if [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
-		#extract argument
-		REPO=${SSH_ORIGINAL_COMMAND:16}
-
-		#remove quotes (without opening injection possibilities)
-		REPO=$(echo $REPO | xargs echo)
-		#REPO=${REPO:1:${#REPO}-2}
-
-		printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
-		pull "$REPO"
-	else
-		printf "%s %s: Unknown command %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
-		exit 1
-	fi
+	printf "%s %s: Unknown command %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
+	exit 1
 fi
