@@ -16,11 +16,11 @@ Clone this repo into the home of the new user.
 Make sure ~/fugit is executable.
 If you like, change the log destination from the default (fugit.log) on line 4
 
-Add the keys used to identify users to .ssh/authorized_keys and add a forced 
-command executing "~/fugit <user identifier>" (see the demo file in the repo 
+Add the keys used to identify users to .ssh/authorized_keys and add a forced
+command executing "~/fugit <user identifier>" (see the demo file in the repo
 for an example).
 
-You might also want to add some or all of 
+You might also want to add some or all of
 	no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding
 to the key options.
 
@@ -52,4 +52,4 @@ Because I need to restrict git access for one system user serving multiple
 key-users to specific repositories without fine-grained control. So, really
 only push/pull/nothing. I reviewed some of the existing options and found them
 all pretty heavy on instructions, prerequisites and implementation complexity.
-So I made my own. 
+So I made my own.

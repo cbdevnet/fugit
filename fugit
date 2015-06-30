@@ -15,11 +15,11 @@ contains(){
 
 push(){
 	#read repo config
-	eval $(grep "REPO $1$" $CONFFILE -A 3 | tail -n +2)
+	eval $(grep -F "REPO $1$" $CONFFILE -A 3 | tail -n +2)
 
-	printf "%s %s: Trying to push to %s (Path %s)\n" "`date`" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
+	printf "%s %s: Trying to push to %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
-		printf "%s %s: Unknown repo, abort\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 		printf "FAIL"
 		return 1
 	fi
@@ -27,20 +27,20 @@ push(){
 	#do access control
 	if contains "$PUSH" "$FUGIT_USER"; then
 		git-receive-pack "$REAL"
-		printf "%s %s: Push accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+		printf "%s %s: Push accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 	else
-		printf "%s %s: Push rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
+		printf "%s %s: Push rejected\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 		printf "FAIL"
 	fi
 }
 
 pull(){
 	#read repo config
-	eval $(grep "REPO $1$" $CONFFILE -A 3 | tail -n +2)
+	eval $(grep -F "REPO $1$" $CONFFILE -A 3 | tail -n +2)
 
-	printf "%s %s: Trying to read from %s (Path %s)\n" "`date`" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
+	printf "%s %s: Trying to read from %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
-		printf "%s %s: Unknown repo, abort\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 		printf "FAIL"
 		return 1
 	fi
@@ -48,43 +48,41 @@ pull(){
 	#do access control
 	if contains "$PULL" "$FUGIT_USER"; then
 		git-upload-pack "$REAL"
-		printf "%s %s: Pull accepted\n" "`date`" "$FUGIT_USER" >> $LOGFILE
+		printf "%s %s: Pull accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 	else
-		printf "%s %s: Pull rejected\n" "`date`" "$FUGIT_USER" >> $LOGFILE	
+		printf "%s %s: Pull rejected\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 		printf "FAIL"
 	fi
 }
 
 FUGIT_USER=$1
 if [ -z "$FUGIT_USER" ]; then
-	printf "%s UNKNOWN: No user name supplied\n" "`date`" >> $LOGFILE
+	printf "%s UNKNOWN: No user name supplied\n" "$(date)" >> $LOGFILE
 	exit 1
 fi
 
-printf "%s %s: Command is %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
+printf "%s %s: Command is %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
 if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 	#extract argument
 	REPO=${SSH_ORIGINAL_COMMAND:17}
 
 	#remove quotes (without opening injection possibilities)
 	REPO=$(echo $REPO | xargs echo)
-	#REPO=${REPO:1:${#REPO}-2}
 
-	printf "%s %s: push to repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
+	printf "%s %s: push to repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	push "$REPO"
+
+elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
+	#extract argument
+	REPO=${SSH_ORIGINAL_COMMAND:16}
+
+	#remove quotes (without opening injection possibilities)
+	REPO=$(echo $REPO | xargs echo)
+
+	printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
+	pull "$REPO"
+
 else
-	if [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
-		#extract argument
-		REPO=${SSH_ORIGINAL_COMMAND:16}
-
-		#remove quotes (without opening injection possibilities)
-		REPO=$(echo $REPO | xargs echo)
-		#REPO=${REPO:1:${#REPO}-2}
-
-		printf "%s %s: pull from repo %s\n" "`date`" "$FUGIT_USER" "$REPO" >> $LOGFILE
-		pull "$REPO"
-	else
-		printf "%s %s: Unknown command %s\n" "`date`" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
-		exit 1
-	fi
+	printf "%s %s: Unknown command %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
+	exit 1
 fi
