@@ -19,7 +19,7 @@ contains(){
 
 push(){
 	#read repo config
-	eval $(grep -F "REPO $1$" $CONFFILE -A 3 | tail -n +2)
+	eval $(grep -Fx "REPO $1" $CONFFILE -A 3 | tail -n +2)
 
 	printf "%s %s: Trying to push to %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
@@ -40,7 +40,7 @@ push(){
 
 pull(){
 	#read repo config
-	eval $(grep -F "REPO $1$" $CONFFILE -A 3 | tail -n +2)
+	eval $(grep -Fx "REPO $1" $CONFFILE -A 3 | tail -n +2)
 
 	printf "%s %s: Trying to read from %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
