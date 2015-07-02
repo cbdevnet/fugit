@@ -1,3 +1,3 @@
 ## Examples
-# command="./fugit cbdev" ssh-rsa mysshkey
-# command="./fugit cbdev",no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding ssh-rsa mysshkey
+# command="./sbin/fugit cbdev" ssh-rsa mysshkey
+# command="./sbin/fugit cbdev",no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding ssh-rsa mysshkey
