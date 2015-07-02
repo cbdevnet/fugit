@@ -68,7 +68,7 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 	REPO=$(echo $REPO | xargs echo)
 
 	#remove all path information
-	REPO=$(basename $REPO)
+	REPO=$(echo $REPO | sed 's/\//-/g')
 
 	printf "%s %s: push to repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	push "$REPO"
@@ -81,7 +81,7 @@ elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
 	REPO=$(echo $REPO | xargs echo)
 
 	#remove all path information
-	REPO=$(basename $REPO)
+	REPO=$(echo $REPO | sed 's/\//-/g')
 
 	printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	pull "$REPO"
