@@ -26,15 +26,30 @@ You might also want to add some or all of
 	no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding
 to the key options.
 
-Each repo is identified by the path, where the path determiner is replaced by
-a '-'. This mean the git repo /bla/blub has the config file
-'$CONFDIR/-bla-blub.conf'.
+You can choose between a conffile and a confdir. The default is a conffile.
+If you want to change this just set CONF to a file or directory.
 
-Add a repo.conf file to $HOME/fugit, each config file contains exactly 3
+conffile:
+Edit fugit.conf to contain exactly 4 lines of text per repository to be
+served.
+Those should be, exactly in this order
+	REPO <repo-identifier>		//Identifies the remote
+	REAL=<path>			//Path to the repo on disk
+	PUSH="<list of users>"		//Users allowed to push to the repo
+	PULL="<list of users>"		//Users allowed to pull from the repo
+
+confdir:
+Each repo is identified by the path, where the path determiner is replaced by
+a '_'. This mean the git repo /bla/blub has the config file
+'$CONFDIR/_bla_blub.conf'.
+
+Add a repo.conf file to $HOME/fugit.d, each config file contains at least 3
 lines
 	REAL=<path>					//Path to the repo on disk
 	PUSH=<path>					//Path to a users file
 	PULL=<path>					//Path to a users file
+
+A users file contains one username per line.
 
 Debugging
 ---------

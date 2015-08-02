@@ -3,17 +3,57 @@
 
 LOGFILE="fugit.log"
 CONFFILE="fugit.conf"
-CONFDIR="$HOME/fugit"
+CONFDIR="$HOME/fugit.d"
+CONF=$CONFFILE
 
-contains(){
+contains_confdir(){
 	[ -f $1 ] || return 1
-	grep --fixed-strings --silent --line-regexp $2 $1
+	grep --fixed-strings --silent --line-regexp "$2" "$1"
 	return $?
 }
 
+contains_conffile(){
+	# temporarily disable pathname expansion to prevent expansion of $1
+	set -f
+	for entry in $1; do
+		if [ "$entry" == "$2" ]; then
+			set +f
+			return 0
+		fi
+	done
+	set +f
+	return 1
+}
+
+check_acl(){
+	if [[ -d $CONF ]]; then
+		R=$(echo $2 | tr '/' '_')
+		eval $CONF/$R.conf
+		if [[ "$1" == "pull" ]]; then
+			return contains_confdir $PULL $3
+		fi
+		if [[ "$1" == "push" ]]; then
+			return contains_confdir $PUSH $3
+		fi
+		return 1
+	fi
+	if [[ -f $CONF ]]; then
+		eval $(grep -Fx "REPO $1" $CONFFILE -A 3 | tail -n +2)
+		if [[ "$1" == "pull" ]]; then
+			return contains_conffile $PULL $3
+		fi
+		if [[ "$1" == "push" ]]; then
+			return contains_conffile $PUSH $3
+		fi
+		return 1
+	fi
+	return 1
+}
+
 push(){
-	#read repo config
-	eval $CONFDIR/$REPO.conf
+	#read repo config and check acl
+	AUTH=0
+	check_acl "push" "$1" "$FUGIT_USER" && AUTH=1
 
 	printf "%s %s: Trying to push to %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
@@ -23,7 +63,7 @@ push(){
 	fi
 
 	#do access control
-	if contains "$PUSH" "$FUGIT_USER"; then
+	if [[ $AUTH -eq 1 ]]; then
 		git-receive-pack "$REAL"
 		printf "%s %s: Push accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 	else
@@ -33,8 +73,9 @@ push(){
 }
 
 pull(){
-	#read repo config
-	eval "$CONFDIR/$REPO.conf"
+	#read repo config and check acl
+	AUTH=0
+	check_acl "pull" $1 "$FUGIT_USER" && AUTH=1
 
 	printf "%s %s: Trying to read from %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
@@ -67,9 +108,6 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 	#remove quotes (without opening injection possibilities)
 	REPO=$(echo $REPO | xargs echo)
 
-	#remove all path information
-	REPO=$(echo $REPO | sed 's/\//-/g')
-
 	printf "%s %s: push to repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	push "$REPO"
 
@@ -79,9 +117,6 @@ elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
 
 	#remove quotes (without opening injection possibilities)
 	REPO=$(echo $REPO | xargs echo)
-
-	#remove all path information
-	REPO=$(echo $REPO | sed 's/\//-/g')
 
 	printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 	pull "$REPO"
