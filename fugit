@@ -26,24 +26,27 @@ contains_conffile(){
 }
 
 check_acl(){
-	if [[ -d $CONF ]]; then
-		R=$(echo $2 | tr '/' '_')
-		eval $CONF/$R.conf
-		if [[ "$1" == "pull" ]]; then
-			return contains_confdir $PULL $3
+	# If using confdir, use confdir ACL
+	if [ -d $CONF ]; then
+		# Fix up the repository name
+		REPONAME=$(echo $2 | tr '/' '_')
+		#Read the config file
+		eval "$CONF/$REPONAME.conf"
+		if [ "$1" == "pull" ]; then
+			return contains_confdir "$PULL" "$3"
 		fi
-		if [[ "$1" == "push" ]]; then
-			return contains_confdir $PUSH $3
+		if [ "$1" == "push" ]; then
+			return contains_confdir "$PUSH" "$3"
 		fi
 		return 1
-	fi
-	if [[ -f $CONF ]]; then
+	else
+		# Use conffile syntax
 		eval $(grep -Fx "REPO $1" $CONFFILE -A 3 | tail -n +2)
-		if [[ "$1" == "pull" ]]; then
-			return contains_conffile $PULL $3
+		if [ "$1" == "pull" ]; then
+			return contains_conffile "$PULL" "$3"
 		fi
-		if [[ "$1" == "push" ]]; then
-			return contains_conffile $PUSH $3
+		if [ "$1" == "push" ]; then
+			return contains_conffile "$PUSH" "$3"
 		fi
 		return 1
 	fi
@@ -51,10 +54,7 @@ check_acl(){
 }
 
 push(){
-	#read repo config and check acl
-	AUTH=0
-	check_acl "push" "$1" "$FUGIT_USER" && AUTH=1
-
+	#read repo config
 	printf "%s %s: Trying to push to %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
 		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
@@ -63,7 +63,7 @@ push(){
 	fi
 
 	#do access control
-	if [[ $AUTH -eq 1 ]]; then
+	if [ "$ACCEPT" == "1" ]; then
 		git-receive-pack "$REAL"
 		printf "%s %s: Push accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 	else
@@ -73,10 +73,7 @@ push(){
 }
 
 pull(){
-	#read repo config and check acl
-	AUTH=0
-	check_acl "pull" $1 "$FUGIT_USER" && AUTH=1
-
+	#read repo config
 	printf "%s %s: Trying to read from %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
 		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
@@ -85,7 +82,7 @@ pull(){
 	fi
 
 	#do access control
-	if contains "$PULL" "$FUGIT_USER"; then
+	if [ "$ACCEPT" == "1" ]; then
 		git-upload-pack "$REAL"
 		printf "%s %s: Pull accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 	else
@@ -94,6 +91,7 @@ pull(){
 	fi
 }
 
+ACCEPT=0
 FUGIT_USER=$1
 if [ -z "$FUGIT_USER" ]; then
 	printf "%s UNKNOWN: No user name supplied\n" "$(date)" >> $LOGFILE
@@ -109,8 +107,9 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 	REPO=$(echo $REPO | xargs echo)
 
 	printf "%s %s: push to repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
-	push "$REPO"
 
+	check_acl "push" "$1" "$FUGIT_USER" && ACCEPT=1
+	push "$REPO"
 elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
 	#extract argument
 	REPO=${SSH_ORIGINAL_COMMAND#git-upload-pack }
@@ -119,8 +118,9 @@ elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
 	REPO=$(echo $REPO | xargs echo)
 
 	printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
-	pull "$REPO"
 
+	check_acl "pull" "$1" "$FUGIT_USER" && ACCEPT=1
+	pull "$REPO"
 else
 	printf "%s %s: Unknown command %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
 	exit 1
