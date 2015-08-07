@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#set -x
+set -x
 
 LOGFILE="fugit.log"
 CONFFILE="fugit.conf"
@@ -27,26 +27,30 @@ contains_conffile(){
 
 check_acl(){
 	# If using confdir, use confdir ACL
-	if [ -d $CONF ]; then
+	if [ -d "$CONF" ]; then
 		# Fix up the repository name
 		REPONAME=$(echo $2 | tr '/' '_')
 		#Read the config file
 		eval "$CONF/$REPONAME.conf"
 		if [ "$1" == "pull" ]; then
-			return contains_confdir "$PULL" "$3"
+			contains_confdir "$PULL" "$3"
+			return $?
 		fi
 		if [ "$1" == "push" ]; then
-			return contains_confdir "$PUSH" "$3"
+			contains_confdir "$PUSH" "$3"
+			return $?
 		fi
 		return 1
 	else
 		# Use conffile syntax
-		eval $(grep -Fx "REPO $1" $CONFFILE -A 3 | tail -n +2)
+		eval $(grep -Fx "REPO $2" $CONFFILE -A 3 | tail -n +2)
 		if [ "$1" == "pull" ]; then
-			return contains_conffile "$PULL" "$3"
+			contains_conffile "$PULL" "$3"
+			return $?
 		fi
 		if [ "$1" == "push" ]; then
-			return contains_conffile "$PUSH" "$3"
+			contains_conffile "$PUSH" "$3"
+			return $?
 		fi
 		return 1
 	fi
@@ -108,7 +112,7 @@ if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
 
 	printf "%s %s: push to repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 
-	check_acl "push" "$1" "$FUGIT_USER" && ACCEPT=1
+	check_acl "push" "$REPO" "$FUGIT_USER" && ACCEPT=1
 	push "$REPO"
 elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
 	#extract argument
@@ -119,7 +123,7 @@ elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
 
 	printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 
-	check_acl "pull" "$1" "$FUGIT_USER" && ACCEPT=1
+	check_acl "pull" "$REPO" "$FUGIT_USER" && ACCEPT=1
 	pull "$REPO"
 else
 	printf "%s %s: Unknown command %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
