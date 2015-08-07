@@ -53,7 +53,7 @@ check_acl(){
 		return 1
 	else
 		# Use conffile syntax
-		eval $(grep -Fx "REPO $2" $CONFFILE -A 3 | tail -n +2)
+		eval $(grep --fixed-strings --line-regexp --after-context=3 "REPO $2" $CONFFILE | tail -n +2)
 		if [ "$1" == "pull" ]; then
 			contains_conffile "$PULL" "$3"
 			return $?
