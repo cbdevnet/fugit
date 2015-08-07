@@ -7,7 +7,7 @@ CONFDIR="$HOME/fugit.d"
 CONF=$CONFFILE
 
 contains_confdir(){
-	[ -f $1 ] || return 1
+	[ -f "$1" ] || return 1
 	grep --fixed-strings --silent --line-regexp "$2" "$1"
 	return $?
 }
