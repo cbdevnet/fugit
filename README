@@ -3,9 +3,9 @@ magic and plain text files. If you want more features, use gitolite or
 something along those lines. Found a bug? Report it - or even better, fix it
 and send a pull request!
 
-Configuring fugit requires experience with configuring ssh, key-based logins, 
-git and, should something break, bash. It might contain some vulnerabilities 
-I have not yet found, so check the code for yourself. Still, you probably 
+Configuring fugit requires experience with configuring ssh, key-based logins,
+git and, should something break, bash. It might contain some vulnerabilities
+I have not yet found, so check the code for yourself. Still, you probably
 should only give SSH access to people you trust in any case.
 
 Setup
@@ -18,7 +18,7 @@ You can also change the config directory from the default ($HOME/fugit/) on
 line 6.
 
 Add the keys used to identify users to .ssh/authorized_keys and add a forced
-command executing "~/sbin/fugit <user identifier>" (see the demo file in the 
+command executing "~/sbin/fugit <user identifier>" (see the demo file in the
 repo for an example).
 
 You might also want to add some or all of
