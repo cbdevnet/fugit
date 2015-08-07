@@ -10,7 +10,11 @@ CONF=$CONFFILE
 # $1 filename
 # $2 username
 contains_confdir(){
-	[ -f "$1" ] || return 1
+	if [ ! -r "$1" ]; then
+		printf "%s %s: Cannot read config file, abort (Path %s)\n" "$(date)" "$2" "$1" >> $LOGFILE
+		printf "FAIL"
+		exit 24
+	fi
 	grep --fixed-strings --silent --line-regexp "$2" "$1"
 	return $?
 }
@@ -39,9 +43,15 @@ check_acl(){
 	# If using confdir, use confdir ACL
 	if [ -d "$CONF" ]; then
 		# Fix up the repository name
-		REPONAME=$(echo $2 | tr '/' '_')
+		REPONAME=$(echo "$2" | tr '/' '_')
 		# Read the config file
-		eval "$CONF/$REPONAME.conf"
+		if [ -r "$CONF/$REPONAME.conf" ]; then
+			eval $(cat "$CONF/$REPONAME.conf")
+		else
+			printf "%s %s: Cannot read repo config, abort (Path %s)\n" "$(date)" "$3" "$CONF/$REPONAME.conf" >> $LOGFILE
+			printf "FAIL"
+			exit 23
+		fi
 		if [ "$1" == "pull" ]; then
 			contains_confdir "$PULL" "$3"
 			return $?
