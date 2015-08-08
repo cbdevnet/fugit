@@ -6,12 +6,22 @@ CONFFILE="fugit.conf"
 CONFDIR="$HOME/fugit.d"
 CONF=$CONFFILE
 
+# Checks whether a username is in the permission file. (For us with a config directory.)
+# $1 filename
+# $2 username
 contains_confdir(){
-	[ -f "$1" ] || return 1
+	if [ ! -r "$1" ]; then
+		printf "%s %s: Cannot read config file, abort (Path %s)\n" "$(date)" "$2" "$1" >> $LOGFILE
+		printf "FAIL"
+		exit 24
+	fi
 	grep --fixed-strings --silent --line-regexp "$2" "$1"
 	return $?
 }
 
+# Checks whether a username is in the permission string. (For use with one config file.)
+# $1 string of permitted users
+# $2 username
 contains_conffile(){
 	# temporarily disable pathname expansion to prevent expansion of $1
 	set -f
@@ -25,13 +35,23 @@ contains_conffile(){
 	return 1
 }
 
+# Checks whether a user is allowed to perform a pull/push operation on a repo.
+# $1 operation [pull|push]
+# $2 repo
+# $3 username
 check_acl(){
 	# If using confdir, use confdir ACL
 	if [ -d "$CONF" ]; then
 		# Fix up the repository name
-		REPONAME=$(echo $2 | tr '/' '_')
-		#Read the config file
-		eval "$CONF/$REPONAME.conf"
+		REPONAME=$(echo "$2" | tr '/' '_')
+		# Read the config file
+		if [ -r "$CONF/$REPONAME.conf" ]; then
+			eval $(cat "$CONF/$REPONAME.conf")
+		else
+			printf "%s %s: Cannot read repo config, abort (Path %s)\n" "$(date)" "$3" "$CONF/$REPONAME.conf" >> $LOGFILE
+			printf "FAIL"
+			exit 23
+		fi
 		if [ "$1" == "pull" ]; then
 			contains_confdir "$PULL" "$3"
 			return $?
@@ -43,7 +63,7 @@ check_acl(){
 		return 1
 	else
 		# Use conffile syntax
-		eval $(grep -Fx "REPO $2" $CONFFILE -A 3 | tail -n +2)
+		eval $(grep --fixed-strings --line-regexp --after-context=3 "REPO $2" $CONFFILE | tail -n +2)
 		if [ "$1" == "pull" ]; then
 			contains_conffile "$PULL" "$3"
 			return $?
@@ -57,8 +77,10 @@ check_acl(){
 	return 1
 }
 
+# Performs a push operation.
+# Requires the config to be read.
+# $1 repo
 push(){
-	#read repo config
 	printf "%s %s: Trying to push to %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
 		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
@@ -66,7 +88,7 @@ push(){
 		return 1
 	fi
 
-	#do access control
+	# do access control
 	if [ "$ACCEPT" == "1" ]; then
 		git-receive-pack "$REAL"
 		printf "%s %s: Push accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
@@ -76,8 +98,10 @@ push(){
 	fi
 }
 
+# Performs a pull operation.
+# Requires the config to be read.
+# $1 repo
 pull(){
-	#read repo config
 	printf "%s %s: Trying to read from %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
 		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
@@ -85,7 +109,7 @@ pull(){
 		return 1
 	fi
 
-	#do access control
+	# do access control
 	if [ "$ACCEPT" == "1" ]; then
 		git-upload-pack "$REAL"
 		printf "%s %s: Pull accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
@@ -104,27 +128,29 @@ fi
 
 printf "%s %s: Command is %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
 if [[ "$SSH_ORIGINAL_COMMAND" == "git-receive-pack "* ]]; then
-	#extract argument
+	# extract argument
 	REPO=${SSH_ORIGINAL_COMMAND#git-receive-pack }
 
-	#remove quotes (without opening injection possibilities)
+	# remove quotes (without opening injection possibilities)
 	REPO=$(echo $REPO | xargs echo)
 
 	printf "%s %s: push to repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 
 	check_acl "push" "$REPO" "$FUGIT_USER" && ACCEPT=1
 	push "$REPO"
+
 elif [[ "$SSH_ORIGINAL_COMMAND" == "git-upload-pack "* ]]; then
-	#extract argument
+	# extract argument
 	REPO=${SSH_ORIGINAL_COMMAND#git-upload-pack }
 
-	#remove quotes (without opening injection possibilities)
+	# remove quotes (without opening injection possibilities)
 	REPO=$(echo $REPO | xargs echo)
 
 	printf "%s %s: pull from repo %s\n" "$(date)" "$FUGIT_USER" "$REPO" >> $LOGFILE
 
 	check_acl "pull" "$REPO" "$FUGIT_USER" && ACCEPT=1
 	pull "$REPO"
+
 else
 	printf "%s %s: Unknown command %s\n" "$(date)" "$FUGIT_USER" "$SSH_ORIGINAL_COMMAND" >> $LOGFILE
 	exit 1
