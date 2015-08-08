@@ -25,9 +25,10 @@ You might also want to add some or all of
 	no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding
 to the key options.
 
-You can choose between two methods of access control: file-based (default) and 
-directory-based. To select directory-based access control, edit the CONF
-variable to point to a directory.
+fugit allows you to choose between two methods of access control: 
+file-based (default) and directory-based. To select directory-based access 
+control, edit the CONF variable to point to a directory.
+
 
 The access control methods have the following structure
 
@@ -44,7 +45,7 @@ Directory-based:
 	The configuration for a repository is read from a file, the name of
 	which is determined by replacing all forward slashes ('/') in the 
 	submitted repo-identifier with underscores, appending ".conf" and
-	preprending the CONF variable.
+	prepending the CONF variable.
 	
 	Example:
 		CONF is "fugit.d"
