@@ -25,30 +25,41 @@ You might also want to add some or all of
 	no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding
 to the key options.
 
-You can choose between a conffile and a confdir. The default is a conffile.
-If you want to change this just set CONF to a file or directory.
+You can choose between two methods of access control: file-based (default) and 
+directory-based. To select directory-based access control, edit the CONF
+variable to point to a directory.
 
-conffile:
-Edit fugit.conf to contain exactly 4 lines of text per repository to be
-served.
-Those should be, exactly in this order
-	REPO <repo-identifier>		//Identifies the remote
+The access control methods have the following structure
+
+File-based:
+	Edit the configuration file (default: fugit.conf) to contain exactly 4
+	lines of text per repository to be served.
+	Those should be, exactly in this order
+		REPO <repo-identifier>	//Identifies the remote
+		REAL=<path>		//Path to the repo on disk
+		PUSH="<list of users>"	//Users allowed to push to the repo
+		PULL="<list of users>"	//Users allowed to pull from the repo
+
+Directory-based:
+	The configuration for a repository is read from a file, the name of
+	which is determined by replacing all forward slashes ('/') in the 
+	submitted repo-identifier with underscores, appending ".conf" and
+	preprending the CONF variable.
+	
+	Example:
+		CONF is "fugit.d"
+
+		$ git clone ssh://host/repo/identifier
+		=> Repo identifier is "/repo/identifier"
+		=> Config file is "fugit.d/_repo_identifier.conf"
+	
+	Config files for repositories should contain these 3 lines
 	REAL=<path>			//Path to the repo on disk
-	PUSH="<list of users>"		//Users allowed to push to the repo
-	PULL="<list of users>"		//Users allowed to pull from the repo
+	PUSH=<path>			//Path to a users file
+	PULL=<path>			//Path to a users file
 
-confdir:
-Each repo is identified by the path, where the path determiner is replaced by
-a '_'. This mean the git repo /bla/blub has the config file
-'$CONFDIR/_bla_blub.conf'.
-
-Add a repo.conf file to $HOME/fugit.d, each config file contains at least 3
-lines
-	REAL=<path>				//Path to the repo on disk
-	PUSH=<path>				//Path to a users file
-	PULL=<path>				//Path to a users file
-
-A users file contains one username per line.
+	The referenced 'users' files should contain one user-identifier
+	per line, to be granted the respective permission.
 
 Debugging
 ---------
