@@ -6,7 +6,7 @@ CONFFILE="fugit.conf"
 CONFDIR="$HOME/fugit.d"
 CONF=$CONFFILE
 
-# Checks whether a username is in the permission file. (For us with a config directory.)
+# Checks whether a username is in the permission file. (For use with a config directory.)
 # $1 filename
 # $2 username
 contains_confdir(){
