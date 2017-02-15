@@ -84,7 +84,7 @@ push(){
 	printf "%s %s: Trying to push to %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
 		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
-		printf "FAIL"
+		printf "ERR No such repository"
 		return 1
 	fi
 
@@ -94,7 +94,7 @@ push(){
 		printf "%s %s: Push accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 	else
 		printf "%s %s: Push rejected\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
-		printf "FAIL"
+		printf "ERR Access not permitted"
 	fi
 }
 
@@ -105,7 +105,7 @@ pull(){
 	printf "%s %s: Trying to read from %s (Path %s)\n" "$(date)" "$FUGIT_USER" "$1" "$REAL" >> $LOGFILE
 	if [ -z "$REAL" ]; then
 		printf "%s %s: Unknown repo, abort\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
-		printf "FAIL"
+		printf "ERR No such repository"
 		return 1
 	fi
 
@@ -115,7 +115,7 @@ pull(){
 		printf "%s %s: Pull accepted\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
 	else
 		printf "%s %s: Pull rejected\n" "$(date)" "$FUGIT_USER" >> $LOGFILE
-		printf "FAIL"
+		printf "ERR Access not permitted"
 	fi
 }
 
