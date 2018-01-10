@@ -1,3 +1,6 @@
 ## Examples
 # command="./sbin/fugit cbdev" ssh-rsa mysshkey
 # command="./sbin/fugit cbdev",no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding ssh-rsa mysshkey
+
+## OpenSSH >= 7.2 supports the 'restrict' option which "includes all current and future key restrictions" (https://www.openssh.com/txt/release-7.2).
+# command="./sbin/fugit cbdev",restrict ssh-rsa mysshkey
