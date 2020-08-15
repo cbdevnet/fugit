@@ -40,10 +40,11 @@ contains_conffile(){
 # $2 repo
 # $3 username
 check_acl(){
+	REPONAME=${2#/}
 	# If using confdir, use confdir ACL
 	if [ -d "$CONF" ]; then
 		# Fix up the repository name
-		REPONAME=$(echo "$2" | tr '/' '_')
+		REPONAME=$(echo "$REPONAME" | tr '/' '_')
 		# Read the config file
 		if [ -r "$CONF/$REPONAME.conf" ]; then
 			eval $(cat "$CONF/$REPONAME.conf")
@@ -63,7 +64,7 @@ check_acl(){
 		return 1
 	else
 		# Use conffile syntax
-		eval $(grep --fixed-strings --line-regexp --after-context=3 "REPO $2" $CONFFILE | tail -n +2)
+		eval $(grep --fixed-strings --line-regexp --after-context=3 "REPO $REPONAME" $CONFFILE | tail -n +2)
 		if [ "$1" == "pull" ]; then
 			contains_conffile "$PULL" "$3"
 			return $?

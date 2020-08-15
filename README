@@ -53,8 +53,8 @@ Directory-based:
 		CONF is "fugit.d"
 
 		$ git clone ssh://host/repo/identifier
-		=> Repo identifier is "/repo/identifier"
-		=> Config file is "fugit.d/_repo_identifier.conf"
+		=> Repo identifier is "repo/identifier"
+		=> Config file is "fugit.d/repo_identifier.conf"
 
 	Config files for repositories should contain these 3 lines
 	REAL=<path>			//Path to the repo on disk
