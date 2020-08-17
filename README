@@ -14,20 +14,22 @@ Set up a system user.
 Clone this repo into the home of the new user and copy fugit to ~/sbin/fugit.
 Make sure ~/sbin/fugit is executable.
 If you like, change the log destination from the default (fugit.log) on line 4
-You can also change the config directory from the default ($HOME/fugit/) on
+You can also change the config directory from the default ($HOME/fugit.d/) on
 line 6.
 
-Add the keys used to identify users to .ssh/authorized_keys and add a forced
+Add the keys used to identify users to ~/.ssh/authorized_keys and add a forced
 command executing "~/sbin/fugit <user identifier>" (see the demo file in the
 repo for an example).
 
 You might also want to add some or all of
-	no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding
-to the key options.
+	no-pty,no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-user-rc
+to the key options. Alternatively,
+	restrict
+includes all of the above.
 
 fugit allows you to choose between two methods of access control: 
 file-based (default) and directory-based. To select directory-based access 
-control, edit the CONF variable to point to a directory.
+control, edit the CONF variable (line 7) to point to a directory.
 
 
 The access control methods have the following structure
@@ -46,14 +48,14 @@ Directory-based:
 	which is determined by replacing all forward slashes ('/') in the 
 	submitted repo-identifier with underscores, appending ".conf" and
 	prepending the CONF variable.
-	
+
 	Example:
 		CONF is "fugit.d"
 
 		$ git clone ssh://host/repo/identifier
 		=> Repo identifier is "/repo/identifier"
 		=> Config file is "fugit.d/_repo_identifier.conf"
-	
+
 	Config files for repositories should contain these 3 lines
 	REAL=<path>			//Path to the repo on disk
 	PUSH=<path>			//Path to a users file
@@ -72,7 +74,7 @@ data upon interacting with repos controlled by fugit.
 
 How it works
 ------------
-gits submodules exchange data via stdin/stdout over ssh. fugit inserts itself
+git's submodules exchange data via stdin/stdout over ssh. fugit inserts itself
 into that channel, distinguishes between push and pull operations and
 either allows the channel to continue or simply closes it. It's not exactly
 rocket science, but it works.
